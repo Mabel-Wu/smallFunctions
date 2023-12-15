@@ -1,0 +1,33 @@
+# df:dataframe, time_tag:eg 'timestamp'
+def time_seg(df, time_tag):
+    # 涂布数据按时间分段
+    data = df.copy()
+
+    bias = 30
+
+    data[time_tag] = pd.to_datetime(data[time_tag])
+    data.sort_values(by=[time_tag], inplace=True)
+    if time_tag != 'time':
+        data.rename({time_tag: 'time'}, axis=1, inplace=True)
+    data['time_diff_on'] = data['time'].diff(1)
+    data['time_diff_on'] = [_.total_seconds() for _ in data['time_diff_on'] if _ != NaT]
+    data['time_diff_on'].fillna(0, inplace=True)
+    data['on'] = [0 if i > bias else 1 for i in data['time_diff_on']]
+    lst_on = data.loc[data['on'] == 0, 'time'].tolist()
+    try:
+        lst_on = [pd.to_datetime(data['time'].values[0])] + lst_on
+    except Exception as e:
+        print(f'[ERROR] lst-on:{e}')
+
+    data['time_diff_off'] = data['time'].diff(-1)
+    data['time_diff_off'] = [_.total_seconds() for _ in data['time_diff_off'] if _ != NaT]
+    data['time_diff_off'].fillna(0, inplace=True)
+    data['off'] = [0 if i < -bias else 1 for i in data['time_diff_off']]
+    lst_off = data.loc[data['off'] == 0, 'time'].tolist()
+    try:
+        lst_off = lst_off + [pd.to_datetime(data['time'].values[-1])]
+    except Exception as e:
+        print(f'[ERROR] lst-off:{e}')
+
+    assert len(lst_on) == len(lst_off), '[ERROR] error in time seg, lengths of lst_on and lst_off are not equal!'
+    return lst_on, lst_off  # 分段的开始、结束时间
