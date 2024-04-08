@@ -1,0 +1,17 @@
+# data quality
+# created on April 8th,2024
+def data_quality_check(df, tag):
+    data = df.copy()
+    print(f'[dataQuality] data variance:{data[tag].var()} ')
+    print(f'[dataQuality] missing data: {data[tag].isnull().sum()} / {data.shape[0]}')
+    # +-3sigma
+    data_mean = data[tag].mean()
+    data_std = data[tag].std()
+    dfte = data[(data[tag] > data_mean + 3 * data_std) | (data[tag] < data_mean - 3 * data_std)]
+    print(f'[dataQuality] abnormal data: {dfte.shape[0]} / {data.shape[0]}')
+    # sampling frequency
+    time_first = data['time'].tolist()[0]
+    time_last = data['time'].tolist()[-1]
+    time_delta = (time_last - time_first).total_seconds()
+    time41 = time_delta / data.shape[0]
+    print(f'[dataQuality] one record will be generated every {time41} seconds ')
