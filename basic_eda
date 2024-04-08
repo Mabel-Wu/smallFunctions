@@ -1,0 +1,29 @@
+# basic eda 
+# created on April 8th, 2024
+def eda(df, tag, upper, lower):
+    data = df.copy()
+    data = data[['time', tag]]
+    print(f'数据总长度为{data.shape[0]}个')
+    count_null = data[tag].isnull().sum()
+    print(f'含缺失样本数{count_null}个,缺失样本率{count_null / data.shape[0]}')
+    data = data.dropna(axis=0, how='any')
+    print(f'以{data.shape[0]}个有效样本数据统计出：')
+    print(f'{tag}的均值为{data[tag].mean()}，标准差为{data[tag].std()}')
+    trfn_upper = data[data[tag] > upper].shape[0]
+    trfn_upper_rate = trfn_upper / data.shape[0]
+    print(f'{tag}大于{upper}的样本数有{trfn_upper}个，占比{trfn_upper_rate}')
+    trfn_lower = data[data[tag] < lower].shape[0]
+    trfn_lower_rate = trfn_lower / data.shape[0]
+    print(f'{tag}小于{lower}的样本数有{trfn_lower}个，占比{trfn_lower_rate}')
+    plt.plot(data.time, data[tag], '.--', label=tag, alpha=0.6)
+    plt.xlabel('time')
+    plt.axhline(upper, c='r', alpha=0.6, lw=2)
+    plt.axhline(lower, c='y', alpha=0.6, lw=2)
+    plt.title('time series curves')
+    plt.legend()
+    plt.show()
+    plt.boxplot(data[tag], notch=True, vert=True, patch_artist=True)
+    plt.ylabel(tag)
+    plt.grid()
+    plt.title('Boxplot')
+    plt.show()
